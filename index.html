@@ -1,15 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-
-  <head>
-    <meta charset="UTF-8">
-    <title>99</title>
-    
-
-  </head>
-    
-  <body>
-  <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -32,7 +21,7 @@ body{
     min-height: 100dvh;
     overflow:hidden;
     user-select:none;
-    touch-action: none; /* 全域での誤スクロール防止 */
+    touch-action: none;
 }
 #app{width:100%;max-width:430px;min-height:100dvh;position:relative;overflow:hidden}
 .screen{display:none;width:100%;min-height:100dvh;flex-direction:column;align-items:center;justify-content:center;padding:16px;position:relative;z-index:1}
@@ -98,7 +87,7 @@ body{
 .res-msg{font-size:16px;color:#ffbb00;margin:12px 0 4px;text-align:center;font-weight:700;line-height:1.5}
 
 /* ─── RANKING ─── */
-.rk-list{width:100%;margin:8px 0;max-height:58vh;overflow-y:auto;touch-action: pan-y; /* ランキングのみスクロール許可 */}
+.rk-list{width:100%;margin:8px 0;max-height:58vh;overflow-y:auto;touch-action: pan-y}
 .rk-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card);border-radius:9px;margin-bottom:6px;border:1px solid #1e1e38}
 .rk-rank{font-size:17px;font-weight:900;width:26px;text-align:center;flex-shrink:0}
 .rk-char-wrap{width:35px;height:45px;overflow:hidden;flex-shrink:0;position:relative}
@@ -176,7 +165,6 @@ body{
 
 </div>
 <script>
-// データ定義は省略なしで保持[cite: 1]
 const CHARS=[
 {name:'ほのおのりゅう',title:'炎の剣士',color:'#ff5500',glow:'rgba(255,85,0,.75)',
 svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="19" ry="3.5" fill="rgba(255,80,0,.22)"/><rect x="21" y="61" width="12" height="22" rx="4" fill="#9a1500"/><rect x="37" y="61" width="12" height="22" rx="4" fill="#9a1500"/><rect x="18" y="33" width="34" height="31" rx="6" fill="#cc2200"/><rect x="24" y="37" width="22" height="17" rx="3" fill="#e83000"/><polygon points="18,43 10,38 8,54 14,50 15,58 20,50" fill="rgba(255,130,0,.45)"/><circle cx="35" cy="23" r="14" fill="#ff5522"/><polygon points="23,14 17,3 28,11" fill="#cc1100"/><polygon points="47,14 53,3 42,11" fill="#cc1100"/><ellipse cx="35" cy="32" rx="5" ry="2.5" fill="#bb2000"/><circle cx="28" cy="21" r="3.5" fill="#ffee00"/><circle cx="42" cy="21" r="3.5" fill="#ffee00"/><circle cx="29" cy="21" r="1.8" fill="#000"/><circle cx="43" cy="21" r="1.8" fill="#000"/><path d="M30,28 Q35,32 40,28" stroke="#aa2200" stroke-width="1.5" fill="none"/><rect x="53" y="17" width="5" height="40" rx="2.5" fill="#ccc"/><rect x="49" y="32" width="13" height="5" rx="2" fill="#ffaa00"/><rect x="55" y="14" width="5" height="8" rx="1" fill="#ff8800"/></svg>`},
@@ -200,19 +188,105 @@ const PRAISE=['Good!','Nice!','Great!','Excellent!','Amazing!','Awesome!','Perfe
 let S={char:null,score:0,timeLeft:30,ca:0,cb:0,ans:'',timer:null,audio:null,bgm:false,bgmNext:0,bgmRaf:null,playing:false,nkLock:false};
 
 // ═══════════════════════════════════════
-// AUDIO SYSTEM (MOBILE OPTIMIZED)
+// BATTLE MC VOICE SYSTEM
+// ═══════════════════════════════════════
+let MC_VOICE = null;
+
+const MC_PHRASES = {
+  '3': 'Three!',
+  '2': 'Two!',
+  '1': 'One!',
+  'GO!!': "Let’s go!",
+  'Good!': 'Good!',
+  'Nice!': 'Nice!',
+  'Great!': 'Great!',
+  'Excellent!': 'Excellent!',
+  'Amazing!': 'Amazing!',
+  'Awesome!': 'Awesome!',
+  'Perfect!': 'Perfect!',
+  'Fantastic!': 'Fantastic!',
+  'Brilliant!': 'Brilliant!',
+  'Outstanding!': 'Outstanding!',
+  'Superb!': 'Superb!',
+  'Incredible!': 'Incredible!',
+  'Wonderful!': 'Wonderful!',
+  'Spectacular!': 'Spectacular!',
+  'Magnificent!': 'Magnificent!',
+  'Legendary!': 'Legendary!',
+  'Unstoppable!': 'Unstoppable!',
+  'On Fire!': "You’re on fire!",
+  'Beast Mode!': 'Beast mode!',
+  'You Rock!': 'You rock!'
+};
+
+function loadMCVoice(){
+  if(!('speechSynthesis' in window)) return;
+
+  const voices = speechSynthesis.getVoices();
+
+  MC_VOICE =
+    voices.find(v => /^en/i.test(v.lang) && /(David|Mark|Guy|Alex|Daniel|Fred|George|Thomas|Male)/i.test(v.name)) ||
+    voices.find(v => /^en-US/i.test(v.lang)) ||
+    voices.find(v => /^en-GB/i.test(v.lang)) ||
+    voices.find(v => /^en/i.test(v.lang)) ||
+    voices[0] ||
+    null;
+}
+
+if('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = loadMCVoice;
+  loadMCVoice();
+}
+
+function speakMC(text, opt={}){
+  if(!('speechSynthesis' in window)) return;
+
+  loadMCVoice();
+
+  const phrase = MC_PHRASES[text] || text;
+
+  if(opt.cancel !== false){
+    speechSynthesis.cancel();
+  }
+
+  const u = new SpeechSynthesisUtterance(phrase);
+  u.lang = 'en-US';
+  if(MC_VOICE) u.voice = MC_VOICE;
+
+  u.rate = opt.rate ?? 1.18;
+  u.pitch = opt.pitch ?? 0.65;
+  u.volume = opt.volume ?? 1;
+
+  speechSynthesis.speak(u);
+}
+
+function unlockMCVoice(){
+  if(!('speechSynthesis' in window)) return;
+  loadMCVoice();
+
+  try{
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    u.lang = 'en-US';
+    if(MC_VOICE) u.voice = MC_VOICE;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+// ═══════════════════════════════════════
+// AUDIO SYSTEM
 // ═══════════════════════════════════════
 function ac(){
     if(!S.audio)S.audio=new(window.AudioContext||window.webkitAudioContext)();
     return S.audio;
 }
 
-// 最適化: モバイルのロック解除用
 async function initAudio() {
     const context = ac();
     if (context.state === 'suspended') {
         await context.resume();
     }
+    unlockMCVoice();
 }
 
 function kick(t=0){try{const c=ac(),n=c.currentTime+t,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.setValueAtTime(150,n);o.frequency.exponentialRampToValueAtTime(38,n+.16);g.gain.setValueAtTime(.9,n);g.gain.exponentialRampToValueAtTime(.001,n+.22);o.start(n);o.stop(n+.25);}catch(e){}}
@@ -290,7 +364,7 @@ function selectChar(i){
 
 function startCountdown(){
   if(S.char===null)return;
-  initAudio(); // 念押しでここでもAudioをレジューム
+  initAudio();
   stopBGM();S.playing=false;
   clearInterval(S.timer);
   show('countdown-screen');
@@ -301,7 +375,9 @@ function startCountdown(){
     if(i>=steps.length){startGame();return;}
     const s=steps[i];
     d.innerHTML=s.go?`<div class="cd-go">${s.t}</div>`:`<div class="cd-num" style="color:${s.c}">${s.t}</div>`;
-    playCD(!!s.go);i++;
+    playCD(!!s.go);
+    speakMC(s.t, {cancel:true, rate:s.go ? 1.12 : 1.0, pitch:0.6});
+    i++;
     setTimeout(next,s.go?720:900);
   })();
 }
@@ -333,7 +409,6 @@ function nkPress(v){
   
   if(!S.ans)return;
   const correct=S.ca*S.cb,ua=parseInt(S.ans);
-  // 入力完了時に自動サブミット
   if(ua===correct || S.ans.length===2){
     S.nkLock=true;
     setTimeout(()=>{doSubmit();S.nkLock=false;},100);
@@ -360,7 +435,9 @@ function addPraise(){
   const z=document.getElementById('praise-zone');
   const d=document.createElement('div');
   d.className='praise';
-  d.textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  const praiseText=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  d.textContent=praiseText;
+  speakMC(praiseText,{cancel:true,rate:1.25,pitch:0.6});
   d.style.left=(10+Math.random()*65)+'%';
   d.style.top=(10+Math.random()*30)+'%';
   z.appendChild(d);setTimeout(()=>d.remove(),950);
@@ -440,8 +517,4 @@ window.addEventListener('load',()=>{
 });
 </script>
 </body>
-</html>
-    
-  </body>
-  
 </html>
