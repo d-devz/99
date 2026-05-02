@@ -1,342 +1,447 @@
 <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>99</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>九九バトル！ - 思考最適化版</title>
-    <style>
-        :root {
-            --bg-color: #0d0d0d;
-            --neon-blue: #00f2ff;
-            --neon-pink: #ff00ea;
-            --text-color: #ffffff;
-        }
-        body {
-            margin: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        #game-container {
-            width: 100%;
-            max-width: 400px;
-            height: 100%;
-            position: relative;
-            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
-            border: 2px solid #333;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        }
-        .screen {
-            position: absolute;
-            inset: 0;
-            display: none;
-            flex-direction: column;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .screen.active { display: flex; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,maximum-scale=1">
+<title>九九バトル！</title>
+<style>
+/* 
+  最適化ポイント: 
+  - touch-action: none でブラウザのズーム/スクロール判定をスキップし、反応速度を向上。
+  - 100dvh でモバイルのアドレスバー問題を解決。
+*/
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#07071a;--card:#11112a;--accent:#ff4400;--gold:#ffd700;--text:#fff;--dim:#8888aa}
+body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Hiragino Kaku Gothic ProN','メイリオ',sans-serif;
+    display:flex;
+    justify-content:center;
+    min-height: 100dvh;
+    overflow:hidden;
+    user-select:none;
+    touch-action: none; /* 全域での誤スクロール防止 */
+}
+#app{width:100%;max-width:430px;min-height:100dvh;position:relative;overflow:hidden}
+.screen{display:none;width:100%;min-height:100dvh;flex-direction:column;align-items:center;justify-content:center;padding:16px;position:relative;z-index:1}
+.screen.active{display:flex}
+#stars{position:fixed;top:0;left:0;z-index:0;pointer-events:none}
 
-        /* Title Screen */
-        h1 {
-            font-size: 3rem;
-            text-align: center;
-            margin-top: 40px;
-            color: var(--neon-blue);
-            text-shadow: 0 0 10px var(--neon-blue);
-            font-style: italic;
-        }
-        .btn {
-            background: transparent;
-            border: 2px solid var(--neon-pink);
-            color: var(--neon-pink);
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: 0.3s;
-            margin: 10px auto;
-            width: 80%;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
-        .btn:active { background: var(--neon-pink); color: #000; }
+/* ─── TITLE ─── */
+.logo{font-size:70px;font-weight:900;line-height:1;letter-spacing:-3px;background:linear-gradient(160deg,#ff9900 0%,#ff2200 55%,#cc0000 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;animation:logoPulse 2s ease-in-out infinite}
+@keyframes logoPulse{0%,100%{filter:drop-shadow(0 0 10px #ff4400)}50%{filter:drop-shadow(0 0 30px #ff8800)}}
+.logo-sub{font-size:11px;letter-spacing:7px;color:var(--dim);margin-top:6px;text-align:center;text-transform:uppercase}
+.btn{border:none;border-radius:10px;color:#fff;font-weight:900;cursor:pointer;width:100%;max-width:300px;padding:15px;margin-top:10px;font-size:20px;letter-spacing:2px;transition:transform .1s,box-shadow .1s;touch-action: manipulation}
+.btn:active{transform:scale(.94)}
+.btn-main{background:linear-gradient(135deg,#ff5500,#bb0000);box-shadow:0 4px 22px rgba(255,68,0,.55)}
+.btn-sub{background:linear-gradient(135deg,#1e1e35,#0e0e22);font-size:15px;padding:13px;border:1px solid #2a2a44;box-shadow:0 4px 14px rgba(0,0,0,.4)}
 
-        /* Game Screen */
-        #hud { display: flex; justify-content: space-between; font-size: 1.2rem; margin-bottom: 20px; color: var(--neon-blue); }
-        #question-box {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 5rem;
-            font-weight: bold;
-            text-shadow: 0 0 15px var(--text-color);
-        }
-        #answer-display {
-            height: 80px;
-            font-size: 4rem;
-            text-align: center;
-            color: var(--neon-pink);
-            margin-bottom: 20px;
-        }
+/* ─── CHAR SELECT ─── */
+.sec-title{font-size:11px;font-weight:900;letter-spacing:5px;color:var(--accent);text-transform:uppercase;margin-bottom:14px}
+.char-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;margin-bottom:14px}
+.char-card{background:var(--card);border:2px solid #1e2248;border-radius:12px;padding:8px 4px 10px;text-align:center;cursor:pointer;transition:all .15s}
+.char-card.selected{border-color:var(--gold);background:#1e1b08;box-shadow:0 0 20px rgba(255,215,0,.4);transform:scale(1.05)}
+.cname{font-size:10px;font-weight:700;margin-top:5px;line-height:1.3}
+.ctitle{font-size:9px;color:var(--dim);margin-top:2px}
 
-        /* Number Keypad */
-        #numpad {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .nk {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid #444;
-            color: white;
-            font-size: 2rem;
-            padding: 20px 0;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-        .nk:active { background: #555; }
-        .nk.special { color: var(--neon-blue); }
+/* ─── COUNTDOWN ─── */
+#countdown-screen{background:radial-gradient(ellipse at center,#1a0d00 0%,var(--bg) 70%)}
+.cd-num{font-size:190px;font-weight:900;line-height:1;animation:cdIn .88s cubic-bezier(.25,.46,.45,.94)}
+@keyframes cdIn{0%{transform:scale(2.5);opacity:0}35%{opacity:1}85%{transform:scale(1);opacity:1}100%{transform:scale(.65);opacity:0}}
+.cd-go{font-size:82px;font-weight:900;background:linear-gradient(135deg,#ff9900,#ff0000);-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:goIn .65s cubic-bezier(.34,1.56,.64,1)}
+@keyframes goIn{0%{transform:scale(.2) rotate(-10deg);opacity:0}60%{transform:scale(1.25) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}
 
-        /* Ranking */
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border-bottom: 1px solid #333; padding: 10px; text-align: left; }
-        .rank-highlight { color: var(--neon-pink); font-weight: bold; }
-    </style>
+/* ─── GAME ─── */
+.g-header{display:flex;justify-content:space-between;width:100%;padding:6px 0 4px}
+.g-label{font-size:10px;letter-spacing:3px;color:var(--dim);font-weight:700;text-transform:uppercase}
+.g-score{font-size:38px;font-weight:900;color:var(--gold);line-height:1}
+.g-time{font-size:38px;font-weight:900;color:#fff;line-height:1;text-align:right;font-variant-numeric:tabular-nums}
+.g-time.warn{color:#ff3300;animation:timeBlink .22s ease-in-out infinite}
+@keyframes timeBlink{0%,100%{opacity:1}50%{opacity:.25}}
+.tbar-wrap{width:100%;height:9px;background:#151530;border-radius:5px;overflow:hidden;margin:4px 0 8px}
+.tbar{height:100%;border-radius:5px;background:linear-gradient(90deg,#00ff88,#ffee00,#ff4400);transition:width .08s linear}
+.char-zone{height:108px;display:flex;align-items:center;justify-content:center;position:relative;margin:2px 0}
+#gc{transition:filter .1s}
+.praise{position:absolute;font-size:21px;font-weight:900;color:#00ffaa;text-shadow:0 0 14px rgba(0,255,170,.9);animation:praiseFly .9s ease-out forwards;pointer-events:none;white-space:nowrap;z-index:10}
+@keyframes praiseFly{0%{transform:translate(-50%,0) scale(.4);opacity:1}100%{transform:translate(-50%,-70px) scale(1.15);opacity:0}}
+.q-row{display:flex;align-items:center;justify-content:center;gap:8px;margin:4px 0;width:100%}
+.q-num{font-size:60px;font-weight:900;line-height:1;letter-spacing:-2px}
+.q-sep{font-size:42px;color:var(--dim);font-weight:300;margin:0 2px}
+.q-ans{font-size:60px;font-weight:900;color:var(--gold);min-width:78px;text-align:center;border-bottom:3px solid var(--gold);padding:0 4px;line-height:1}
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:100%;margin-top:8px}
+.nk{background:#131330;border:2px solid #252545;border-radius:10px;color:#fff;font-size:26px;font-weight:700;height:58px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .07s,transform .07s;touch-action: manipulation}
+.nk:active{background:#2a2a55;transform:scale(.89)}
+.nk-del{font-size:18px;background:#1c0f28;border-color:#3a1a3a;color:#ff88bb}
+.nk-ok{font-size:15px;font-weight:900;background:linear-gradient(135deg,#0c2818,#081810);border-color:#1a5530;color:#00ff88;letter-spacing:2px}
+.wrong-flash{animation:wFlash .3s ease}
+@keyframes wFlash{0%,100%{background:transparent}50%{background:rgba(255,0,0,.15)}}
+@keyframes charJump{0%{transform:translateY(0) rotate(0deg)}45%{transform:translateY(-26px) scale(1.15) rotate(-5deg)}100%{transform:translateY(0) rotate(0deg)}}
+@keyframes charShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+.jump{animation:charJump .42s cubic-bezier(.34,1.56,.64,1)}
+.shake{animation:charShake .3s ease}
+
+/* ─── RESULT ─── */
+.res-big{font-size:108px;font-weight:900;color:var(--gold);line-height:1;animation:popIn .65s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{0%{transform:scale(0)}75%{transform:scale(1.1)}100%{transform:scale(1)}}
+.res-msg{font-size:16px;color:#ffbb00;margin:12px 0 4px;text-align:center;font-weight:700;line-height:1.5}
+
+/* ─── RANKING ─── */
+.rk-list{width:100%;margin:8px 0;max-height:58vh;overflow-y:auto;touch-action: pan-y; /* ランキングのみスクロール許可 */}
+.rk-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--card);border-radius:9px;margin-bottom:6px;border:1px solid #1e1e38}
+.rk-rank{font-size:17px;font-weight:900;width:26px;text-align:center;flex-shrink:0}
+.rk-char-wrap{width:35px;height:45px;overflow:hidden;flex-shrink:0;position:relative}
+.rk-char-inner{position:absolute;top:0;left:0;transform:scale(.5);transform-origin:top left}
+.rk-info{flex:1;min-width:0}
+.rk-score{font-size:22px;font-weight:900;color:var(--gold);flex-shrink:0}
+.empty-msg{text-align:center;color:var(--dim);padding:40px 0;font-size:15px;line-height:2.2}
+</style>
 </head>
 <body>
+<canvas id="stars"></canvas>
+<div id="app">
 
-<div id="game-container">
-    <!-- Title -->
-    <div id="s-title" class="screen active">
-        <h1>九九バトル！</h1>
-        <div style="flex-grow: 1;"></div>
-        <button class="btn" onclick="initGame('classic')">START GAME</button>
-        <button class="btn" onclick="showRanking()" style="border-color: var(--neon-blue); color: var(--neon-blue);">RANKING</button>
-    </div>
-
-    <!-- Play -->
-    <div id="s-play" class="screen">
-        <div id="hud">
-            <div>SCORE: <span id="val-score">0</span></div>
-            <div>TIME: <span id="val-time">30</span>s</div>
-        </div>
-        <div id="question-box"><span id="qtext">? × ?</span></div>
-        <div id="answer-display"><span id="qans">＿</span></div>
-        <div id="numpad">
-            <button class="nk" onclick="nkPress('1')">1</button>
-            <button class="nk" onclick="nkPress('2')">2</button>
-            <button class="nk" onclick="nkPress('3')">3</button>
-            <button class="nk" onclick="nkPress('4')">4</button>
-            <button class="nk" onclick="nkPress('5')">5</button>
-            <button class="nk" onclick="nkPress('6')">6</button>
-            <button class="nk" onclick="nkPress('7')">7</button>
-            <button class="nk" onclick="nkPress('8')">8</button>
-            <button class="nk" onclick="nkPress('9')">9</button>
-            <button class="nk special" onclick="nkPress('⌫')">⌫</button>
-            <button class="nk" onclick="nkPress('0')">0</button>
-            <button class="nk special" onclick="nkPress('OK')">OK</button>
-        </div>
-    </div>
-
-    <!-- Result -->
-    <div id="s-result" class="screen">
-        <h1>FINISH!</h1>
-        <div id="result-score" style="font-size: 3rem; text-align: center; margin: 40px 0;">0 pts</div>
-        <button class="btn" onclick="location.reload()">TITLE</button>
-    </div>
-
-    <!-- Ranking -->
-    <div id="s-rank" class="screen">
-        <h2 style="color: var(--neon-blue);">TOP RANKERS</h2>
-        <div id="rank-list" style="overflow-y: auto; flex-grow: 1;"></div>
-        <button class="btn" onclick="goHome()">BACK</button>
-    </div>
+<!-- TITLE -->
+<div class="screen active" id="title-screen">
+  <div id="title-char" style="margin-bottom:18px"></div>
+  <div class="logo">九九<br>バトル！</div>
+  <div class="logo-sub">KUKU BATTLE</div>
+  <button class="btn btn-main" style="margin-top:28px" onclick="initAudio();showCharSelect()">▶ はじめる</button>
+  <button class="btn btn-sub" onclick="initAudio();showRanking()">🏆 ランキング</button>
 </div>
 
+<!-- CHAR SELECT -->
+<div class="screen" id="char-select-screen">
+  <div class="sec-title">キャラクターをえらべ！</div>
+  <div class="char-grid" id="char-grid"></div>
+  <button class="btn btn-main" id="start-btn" onclick="startCountdown()" disabled style="opacity:.4;font-size:16px">キャラをえらんでください</button>
+  <button class="btn btn-sub" onclick="showTitle()" style="margin-top:6px">もどる</button>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="screen" id="countdown-screen">
+  <div id="cd-display"></div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="game-screen">
+  <div class="g-header">
+    <div><div class="g-label">SCORE</div><div class="g-score" id="gscore">0</div></div>
+    <div><div class="g-label" style="text-align:right">TIME</div><div class="g-time" id="gtime">30</div></div>
+  </div>
+  <div class="tbar-wrap"><div class="tbar" id="tbar"></div></div>
+  <div class="char-zone">
+    <div id="gc"></div>
+    <div id="praise-zone" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
+  </div>
+  <div class="q-row">
+    <div class="q-num" id="qa"></div>
+    <div class="q-sep">×</div>
+    <div class="q-num" id="qb"></div>
+    <div class="q-sep">=</div>
+    <div class="q-ans" id="qans">＿</div>
+  </div>
+  <div class="numpad" id="numpad"></div>
+</div>
+
+<!-- RESULT -->
+<div class="screen" id="result-screen">
+  <div class="sec-title">けっか！</div>
+  <div id="res-char"></div>
+  <div style="font-size:15px;color:var(--dim);margin-top:14px">正解数</div>
+  <div class="res-big" id="res-score">0</div>
+  <div class="res-msg" id="res-msg"></div>
+  <button class="btn btn-main" onclick="startCountdown()" style="font-size:19px">もう一回！</button>
+  <button class="btn btn-sub" onclick="showCharSelect()">キャラを変える</button>
+  <button class="btn btn-sub" onclick="showRanking()">🏆 ランキングを見る</button>
+</div>
+
+<!-- RANKING -->
+<div class="screen" id="ranking-screen">
+  <div class="sec-title">🏆 ランキング TOP10</div>
+  <div class="rk-list" id="rk-list"></div>
+  <button class="btn btn-sub" onclick="showTitle()">もどる</button>
+</div>
+
+</div>
 <script>
-/* ---------------------------------------------------------
-   State & Config
-   --------------------------------------------------------- */
-const S = {
-    score: 0,
-    time: 30,
-    playing: false,
-    timer: null,
-    ca: 0, cb: 0, ans: '',
-    nkLock: false,
-    audioCtx: null,
-    bgmStarted: false
-};
+// データ定義は省略なしで保持[cite: 1]
+const CHARS=[
+{name:'ほのおのりゅう',title:'炎の剣士',color:'#ff5500',glow:'rgba(255,85,0,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="19" ry="3.5" fill="rgba(255,80,0,.22)"/><rect x="21" y="61" width="12" height="22" rx="4" fill="#9a1500"/><rect x="37" y="61" width="12" height="22" rx="4" fill="#9a1500"/><rect x="18" y="33" width="34" height="31" rx="6" fill="#cc2200"/><rect x="24" y="37" width="22" height="17" rx="3" fill="#e83000"/><polygon points="18,43 10,38 8,54 14,50 15,58 20,50" fill="rgba(255,130,0,.45)"/><circle cx="35" cy="23" r="14" fill="#ff5522"/><polygon points="23,14 17,3 28,11" fill="#cc1100"/><polygon points="47,14 53,3 42,11" fill="#cc1100"/><ellipse cx="35" cy="32" rx="5" ry="2.5" fill="#bb2000"/><circle cx="28" cy="21" r="3.5" fill="#ffee00"/><circle cx="42" cy="21" r="3.5" fill="#ffee00"/><circle cx="29" cy="21" r="1.8" fill="#000"/><circle cx="43" cy="21" r="1.8" fill="#000"/><path d="M30,28 Q35,32 40,28" stroke="#aa2200" stroke-width="1.5" fill="none"/><rect x="53" y="17" width="5" height="40" rx="2.5" fill="#ccc"/><rect x="49" y="32" width="13" height="5" rx="2" fill="#ffaa00"/><rect x="55" y="14" width="5" height="8" rx="1" fill="#ff8800"/></svg>`},
+{name:'こおりのゼル',title:'氷の魔法使い',color:'#44aaff',glow:'rgba(68,170,255,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="19" ry="3.5" fill="rgba(68,170,255,.18)"/><polygon points="16,90 22,37 48,37 54,90" fill="#1044aa"/><rect x="22" y="37" width="26" height="25" rx="4" fill="#1a55cc"/><rect x="26" y="40" width="18" height="15" rx="3" fill="#2266dd"/><circle cx="35" cy="22" r="13" fill="#aaddff"/><polygon points="35,2 18,22 52,22" fill="#0033bb"/><rect x="17" y="20" width="36" height="5" rx="2.5" fill="#1144cc"/><polygon points="35,5 37,12 44,12 38.5,16 40.5,23 35,19 29.5,23 31.5,16 26,12 33,12" fill="#ffff55" opacity=".9"/><circle cx="28" cy="21" r="3" fill="#4488ff"/><circle cx="42" cy="21" r="3" fill="#4488ff"/><circle cx="29" cy="21" r="1.5" fill="#001144"/><circle cx="43" cy="21" r="1.5" fill="#001144"/><rect x="10" y="24" width="4" height="58" rx="2" fill="#4499ff"/><polygon points="12,20 7,29 12,26 17,29" fill="#bbeeFF"/><polygon points="12,20 17,29 12,33 7,29" fill="#88ccff"/><polygon points="56,36 61,28 66,36 61,44" fill="#99eeff" opacity=".7"/><polygon points="55,53 60,46 65,53 60,60" fill="#99eeff" opacity=".5"/><polygon points="58,68 62,62 66,68 62,74" fill="#99eeff" opacity=".35"/></svg>`},
+{name:'かみなりのカイ',title:'雷の戦士',color:'#ffdd00',glow:'rgba(255,220,0,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="19" ry="3.5" fill="rgba(255,220,0,.18)"/><rect x="20" y="61" width="13" height="24" rx="4" fill="#aa7700"/><rect x="37" y="61" width="13" height="24" rx="4" fill="#aa7700"/><rect x="18" y="32" width="34" height="33" rx="6" fill="#cc9900"/><rect x="22" y="36" width="26" height="22" rx="4" fill="#ffbb00"/><rect x="26" y="38" width="18" height="14" rx="3" fill="#ffcc33"/><circle cx="35" cy="21" r="14" fill="#ffcc44"/><path d="M21,21 Q21,6 35,6 Q49,6 49,21" fill="#bb8800"/><rect x="21" y="18" width="28" height="6" rx="3" fill="#ddaa00"/><rect x="24" y="18" width="22" height="8" rx="3" fill="rgba(0,0,40,.88)"/><circle cx="29" cy="23" r="3" fill="#ffff55"/><circle cx="41" cy="23" r="3" fill="#ffff55"/><polygon points="60,12 51,37 57,37 47,64 65,32 59,32" fill="#ffff00"/><polygon points="60,12 51,37 57,37 47,64 65,32 59,32" fill="rgba(255,255,255,.28)"/><line x1="14" y1="43" x2="5" y2="37" stroke="#ffff00" stroke-width="2.5" opacity=".7"/><line x1="13" y1="53" x2="4" y2="56" stroke="#ffff00" stroke-width="2" opacity=".5"/></svg>`},
+{name:'やみのシノ',title:'闇の忍者',color:'#cc44ff',glow:'rgba(180,50,255,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="18" ry="3.5" fill="rgba(130,0,200,.28)"/><path d="M8,89 L18,39 Q35,29 52,39 L62,89 Q50,76 35,80 Q20,76 8,89" fill="#140025"/><rect x="22" y="35" width="26" height="29" rx="4" fill="#25004a"/><path d="M19,31 Q35,40 51,31 Q49,44 35,42 Q21,44 19,31" fill="#1a0035"/><circle cx="35" cy="21" r="13" fill="#1e0033"/><path d="M22,21 Q22,7 35,7 Q48,7 48,21" fill="#0e0022"/><rect x="23" y="20" width="24" height="10" rx="3" fill="#080018"/><circle cx="28" cy="22" r="3.5" fill="#cc00ff"/><circle cx="42" cy="22" r="3.5" fill="#cc00ff"/><circle cx="28" cy="22" r="1.6" fill="#ffaaff" opacity=".85"/><circle cx="42" cy="22" r="1.6" fill="#ffaaff" opacity=".85"/><line x1="58" y1="12" x2="58" y2="57" stroke="#bbb" stroke-width="3.5"/><polygon points="58,9 53,20 63,20" fill="#ddd"/><rect x="53" y="43" width="10" height="9" rx="2" fill="#553366"/><line x1="49" y1="41" x2="63" y2="39" stroke="#888" stroke-width="2" stroke-dasharray="2,2"/><circle cx="35" cy="35" r="3" fill="#aa00ff" opacity=".5"/></svg>`},
+{name:'だいちのガオ',title:'大地の巨人',color:'#44dd44',glow:'rgba(60,210,60,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="24" ry="4" fill="rgba(50,160,30,.28)"/><rect x="16" y="63" width="16" height="24" rx="5" fill="#224422"/><rect x="38" y="63" width="16" height="24" rx="5" fill="#224422"/><rect x="11" y="31" width="48" height="36" rx="8" fill="#336633"/><rect x="17" y="35" width="36" height="25" rx="5" fill="#448844"/><circle cx="25" cy="48" r="7.5" fill="#224422"/><circle cx="45" cy="48" r="7.5" fill="#224422"/><rect x="22" y="57" width="26" height="9" rx="4" fill="#224422"/><circle cx="35" cy="21" r="17" fill="#449944"/><polygon points="23,11 28,3 35,7 42,3 47,11 35,15" fill="#224422"/><circle cx="27" cy="19" r="4.5" fill="#88ff44"/><circle cx="43" cy="19" r="4.5" fill="#88ff44"/><circle cx="28" cy="19" r="2" fill="#000"/><circle cx="44" cy="19" r="2" fill="#000"/><ellipse cx="35" cy="27" rx="4" ry="2.5" fill="#224422"/><rect x="0" y="34" width="13" height="28" rx="6" fill="#336633"/><circle cx="6.5" cy="64" r="8" fill="#224422"/><rect x="57" y="34" width="13" height="28" rx="6" fill="#336633"/><circle cx="63.5" cy="64" r="8" fill="#224422"/></svg>`},
+{name:'かぜのアリア',title:'風のアーチャー',color:'#00ffcc',glow:'rgba(0,255,180,.75)',
+svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/2000/svg"><ellipse cx="35" cy="87" rx="18" ry="3.5" fill="rgba(0,200,150,.22)"/><rect x="24" y="61" width="11" height="26" rx="4" fill="#004d3a"/><rect x="35" y="61" width="11" height="26" rx="4" fill="#004d3a"/><polygon points="19,89 25,51 45,51 51,89" fill="#005544"/><rect x="23" y="33" width="24" height="31" rx="5" fill="#006655"/><rect x="27" y="37" width="16" height="20" rx="4" fill="#008866"/><circle cx="35" cy="21" r="13" fill="#aaffee"/><path d="M22,17 Q22,6 35,5 Q48,6 48,17 Q44,9 35,9 Q26,9 22,17" fill="#00aa88"/><path d="M47,17 Q53,20 51,31 Q48,22 44,26" stroke="#00aa88" stroke-width="4" fill="none"/><path d="M23,17 Q17,20 19,31 Q22,22 26,26" stroke="#00aa88" stroke-width="3.5" fill="none"/><circle cx="29" cy="20" r="3" fill="#00ccff"/><circle cx="41" cy="20" r="3" fill="#00ccff"/><circle cx="30" cy="20" r="1.5" fill="#002222"/><circle cx="42" cy="20" r="1.5" fill="#002222"/><path d="M29,27 Q35,31 41,27" stroke="#004d3a" stroke-width="1.5" fill="none"/><path d="M61,9 Q72,36 61,63" fill="none" stroke="#775522" stroke-width="5"/><line x1="61" y1="9" x2="61" y2="63" stroke="#998833" stroke-width="2"/><line x1="30" y1="39" x2="65" y2="36" stroke="#886622" stroke-width="3"/><polygon points="65,36 60,33 60,39" fill="#ccaa44"/><path d="M4,33 Q11,28 9,38 Q7,43 14,41" fill="none" stroke="#00ffcc" stroke-width="2" opacity=".6"/><path d="M3,51 Q10,46 8,56 Q6,61 13,59" fill="none" stroke="#00ffcc" stroke-width="1.5" opacity=".45"/></svg>`}
+];
 
-const ac = () => S.audioCtx || (S.audioCtx = new (window.AudioContext || window.webkitAudioContext)());
+const PRAISE=['Good!','Nice!','Great!','Excellent!','Amazing!','Awesome!','Perfect!','Fantastic!','Brilliant!','Outstanding!','Superb!','Incredible!','Wonderful!','Spectacular!','Magnificent!','Legendary!','Unstoppable!','On Fire!','Beast Mode!','You Rock!'];
 
-/* ---------------------------------------------------------
-   Audio Logic (Web Audio API)
-   --------------------------------------------------------- */
-function beep(freq, dur, vol=0.1) {
-    const ctx = ac();
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'square';
-    osc.frequency.value = freq;
-    g.gain.setValueAtTime(vol, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
-    osc.connect(g);
-    g.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + dur);
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let S={char:null,score:0,timeLeft:30,ca:0,cb:0,ans:'',timer:null,audio:null,bgm:false,bgmNext:0,bgmRaf:null,playing:false,nkLock:false};
+
+// ═══════════════════════════════════════
+// AUDIO SYSTEM (MOBILE OPTIMIZED)
+// ═══════════════════════════════════════
+function ac(){
+    if(!S.audio)S.audio=new(window.AudioContext||window.webkitAudioContext)();
+    return S.audio;
 }
 
-function startBGM() {
-    if (S.bgmStarted) return;
-    const ctx = ac();
-    if (ctx.state === 'suspended') ctx.resume();
-    
-    S.bgmStarted = true;
-    let nextNote = ctx.currentTime;
-    const bpm = 140;
-    const step = 60 / bpm / 2;
-
-    function loop() {
-        while (nextNote < ctx.currentTime + 0.1) {
-            // シンプルなテクノ系ベースラインの擬似再生
-            if (S.playing) beep(55, 0.1, 0.05); 
-            nextNote += step;
-        }
-        if (S.playing) requestAnimationFrame(loop);
-    }
-    loop();
-}
-
-/* ---------------------------------------------------------
-   Game Logic
-   --------------------------------------------------------- */
-function initGame() {
-    // モバイルブラウザの音声制限を解除するためのトリガー
-    const ctx = ac();
-    if (ctx.state === 'suspended') ctx.resume();
-    
-    changeScreen('s-play');
-    S.score = 0;
-    S.time = 30;
-    S.playing = true;
-    
-    updateHUD();
-    nextQuestion();
-    startBGM();
-
-    S.timer = setInterval(() => {
-        S.time--;
-        updateHUD();
-        if (S.time <= 0) endGame();
-    }, 1000);
-}
-
-function nextQuestion() {
-    S.ca = Math.floor(Math.random() * 8) + 2;
-    S.cb = Math.floor(Math.random() * 8) + 2;
-    S.ans = '';
-    document.getElementById('qtext').textContent = `${S.ca} × ${S.cb}`;
-    document.getElementById('qans').textContent = '＿';
-    document.getElementById('qans').style.color = 'var(--neon-pink)';
-}
-
-function nkPress(v) {
-    if (S.nkLock || !S.playing) return;
-
-    if (v === '⌫') {
-        S.ans = S.ans.slice(0, -1);
-    } else if (v === 'OK') {
-        if (S.ans) checkAnswer();
-        return;
-    } else {
-        if (S.ans.length >= 2) return;
-        S.ans += v;
-    }
-
-    document.getElementById('qans').textContent = S.ans || '＿';
-
-    // 入力最適化ロジック
-    const correct = S.ca * S.cb;
-    const userVal = parseInt(S.ans);
-
-    if (userVal === correct) {
-        S.nkLock = true;
-        beep(880, 0.1, 0.1);
-        setTimeout(() => { checkAnswer(); S.nkLock = false; }, 150);
-    } else if (S.ans.length >= 2) {
-        S.nkLock = true;
-        document.getElementById('qans').style.color = '#ff4444';
-        beep(220, 0.2, 0.1);
-        setTimeout(() => { checkAnswer(); S.nkLock = false; }, 400);
+// 最適化: モバイルのロック解除用
+async function initAudio() {
+    const context = ac();
+    if (context.state === 'suspended') {
+        await context.resume();
     }
 }
 
-function checkAnswer() {
-    const correct = S.ca * S.cb;
-    if (parseInt(S.ans) === correct) {
-        S.score += 10;
-    } else {
-        S.score = Math.max(0, S.score - 5);
-    }
-    updateHUD();
-    nextQuestion();
+function kick(t=0){try{const c=ac(),n=c.currentTime+t,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.setValueAtTime(150,n);o.frequency.exponentialRampToValueAtTime(38,n+.16);g.gain.setValueAtTime(.9,n);g.gain.exponentialRampToValueAtTime(.001,n+.22);o.start(n);o.stop(n+.25);}catch(e){}}
+function snare(t=0){try{const c=ac(),n=c.currentTime+t,b=c.createBuffer(1,c.sampleRate*.11,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);const s=c.createBufferSource();s.buffer=b;const g=c.createGain(),f=c.createBiquadFilter();f.type='highpass';f.frequency.value=2200;s.connect(f);f.connect(g);g.connect(c.destination);g.gain.setValueAtTime(.26,n);g.gain.exponentialRampToValueAtTime(.001,n+.12);s.start(n);s.stop(n+.13);}catch(e){}}
+function hat(t=0,gain=.12){try{const c=ac(),n=c.currentTime+t,b=c.createBuffer(1,c.sampleRate*.04,c.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1);const s=c.createBufferSource();s.buffer=b;const g=c.createGain(),f=c.createBiquadFilter();f.type='highpass';f.frequency.value=8000;s.connect(f);f.connect(g);g.connect(c.destination);g.gain.setValueAtTime(gain,n);g.gain.exponentialRampToValueAtTime(.001,n+.04);s.start(n);s.stop(n+.05);}catch(e){}}
+function bass(freq,t=0){try{const c=ac(),n=c.currentTime+t,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.setValueAtTime(freq,n);g.gain.setValueAtTime(.2,n);g.gain.exponentialRampToValueAtTime(.001,n+.2);o.start(n);o.stop(n+.25);}catch(e){}}
+function tone(f,type,dur,gain,t=0){try{const c=ac(),n=c.currentTime+t,o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type=type;o.frequency.setValueAtTime(f,n);g.gain.setValueAtTime(gain||.25,n);g.gain.exponentialRampToValueAtTime(.001,n+dur);o.start(n);o.stop(n+dur);}catch(e){}}
+
+const BPM=150,S16=(60/BPM)/4;
+const BL=[55,0,55,0,65,0,58,55,55,0,69,0,65,0,73,0];
+
+function bgmLoop(){
+  if(!S.bgm)return;
+  const c=ac();
+  while(S.bgmNext<c.currentTime+.55){
+    const off=S.bgmNext-c.currentTime,step=Math.round(S.bgmNext/S16)%16;
+    if(step===0||step===8)kick(off);
+    if(step===4||step===12)snare(off);
+    if(step%2===0)hat(off,.12);else hat(off,.06);
+    if(BL[step]>0)bass(BL[step],off);
+    S.bgmNext+=S16;
+  }
+  S.bgmRaf=requestAnimationFrame(bgmLoop);
 }
 
-function updateHUD() {
-    document.getElementById('val-score').textContent = S.score;
-    document.getElementById('val-time').textContent = S.time;
+function startBGM(){if(S.bgm)return;S.bgm=true;ac();S.bgmNext=S.audio.currentTime;bgmLoop();}
+function stopBGM(){S.bgm=false;if(S.bgmRaf)cancelAnimationFrame(S.bgmRaf);}
+function playCorrect(){tone(523,'square',.08,.22);tone(659,'square',.1,.2,.07);tone(784,'square',.15,.18,.15);}
+function playWrong(){tone(200,'sawtooth',.18,.32);tone(155,'sawtooth',.18,.28,.1);}
+function playCD(isGo){if(isGo){tone(880,'square',.28,.42);tone(1100,'square',.28,.32,.13);}else{tone(440,'square',.13,.32);}}
+function playTimeWarn(){tone(880,'square',.06,.2);}
+
+// STARS ANIMATION
+function initStars(){
+  const c=document.getElementById('stars');
+  c.width=window.innerWidth;c.height=window.innerHeight;
+  const ctx=c.getContext('2d');
+  const st=Array.from({length:110},()=>({x:Math.random()*c.width,y:Math.random()*c.height,r:Math.random()*1.6+.3,p:Math.random()*Math.PI*2,sp:Math.random()*.0035+.001}));
+  (function draw(){
+    ctx.fillStyle='#07071a';ctx.fillRect(0,0,c.width,c.height);
+    st.forEach(s=>{s.p+=s.sp;const a=Math.sin(s.p)*.5+.5;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${a*.7+.06})`;ctx.fill();});
+    requestAnimationFrame(draw);
+  })();
 }
 
-function endGame() {
-    S.playing = false;
-    clearInterval(S.timer);
-    saveRank(S.score);
-    changeScreen('s-result');
-    document.getElementById('result-score').textContent = `${S.score} pts`;
+// SCREEN CONTROL
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function showTitle(){
+  stopBGM();S.playing=false;
+  clearInterval(S.timer);
+  const ch=CHARS[Math.floor(Math.random()*6)];
+  document.getElementById('title-char').innerHTML=`<div style="filter:drop-shadow(0 0 20px ${ch.color})">${ch.svg}</div>`;
+  show('title-screen');
 }
 
-/* ---------------------------------------------------------
-   UI & Data
-   --------------------------------------------------------- */
-function changeScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+function showCharSelect(){
+  clearInterval(S.timer);S.playing=false;
+  const g=document.getElementById('char-grid');
+  g.innerHTML=CHARS.map((c,i)=>`<div class="char-card" id="cc${i}" onclick="selectChar(${i})"><div style="filter:drop-shadow(0 0 8px ${c.color})">${c.svg}</div><div class="cname">${c.name}</div><div class="ctitle" style="color:${c.color}">${c.title}</div></div>`).join('');
+  S.char=null;
+  const b=document.getElementById('start-btn');
+  b.disabled=true;b.style.opacity='.4';b.textContent='キャラをえらんでください';
+  show('char-select-screen');
 }
 
-function goHome() { changeScreen('s-title'); }
-
-function saveRank(score) {
-    try {
-        let ranks = JSON.parse(localStorage.getItem('kuku_ranks') || '[]');
-        ranks.push({ s: score, d: new Date().toLocaleDateString() });
-        ranks.sort((a, b) => b.s - a.s);
-        localStorage.setItem('kuku_ranks', JSON.stringify(ranks.slice(0, 10)));
-    } catch(e) { console.error("Storage Error", e); }
+function selectChar(i){
+  S.char=i;
+  document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('selected'));
+  document.getElementById('cc'+i).classList.add('selected');
+  const b=document.getElementById('start-btn');
+  b.disabled=false;b.style.opacity='1';
+  b.textContent=`▶ ${CHARS[i].name}でバトル！`;
 }
 
-function showRanking() {
-    changeScreen('s-rank');
-    const list = document.getElementById('rank-list');
-    let ranks = [];
-    try {
-        ranks = JSON.parse(localStorage.getItem('kuku_ranks') || '[]');
-    } catch(e) { ranks = []; }
-
-    let html = '<table><tr><th>RANK</th><th>SCORE</th><th>DATE</th></tr>';
-    ranks.forEach((r, i) => {
-        html += `<tr><td>${i+1}</td><td class="rank-highlight">${r.s}</td><td>${r.d}</td></tr>`;
-    });
-    html += '</table>';
-    list.innerHTML = ranks.length ? html : '<p style="text-align:center">No data yet</p>';
+function startCountdown(){
+  if(S.char===null)return;
+  initAudio(); // 念押しでここでもAudioをレジューム
+  stopBGM();S.playing=false;
+  clearInterval(S.timer);
+  show('countdown-screen');
+  const d=document.getElementById('cd-display');
+  const steps=[{t:'3',c:'#ff4400'},{t:'2',c:'#ffaa00'},{t:'1',c:'#00ff88'},{t:'GO!!',go:true}];
+  let i=0;
+  (function next(){
+    if(i>=steps.length){startGame();return;}
+    const s=steps[i];
+    d.innerHTML=s.go?`<div class="cd-go">${s.t}</div>`:`<div class="cd-num" style="color:${s.c}">${s.t}</div>`;
+    playCD(!!s.go);i++;
+    setTimeout(next,s.go?720:900);
+  })();
 }
 
+// GAME CORE
+function buildPad(){
+  document.getElementById('numpad').innerHTML=['1','2','3','4','5','6','7','8','9','⌫','0','OK'].map(v=>{
+    let cls='nk';
+    if(v==='⌫')cls+=' nk-del';
+    if(v==='OK')cls+=' nk-ok';
+    return `<button class="${cls}" onclick="nkPress('${v}')">${v}</button>`;
+  }).join('');
+}
+
+function genQ(){
+  S.ca=Math.ceil(Math.random()*9);S.cb=Math.ceil(Math.random()*9);S.ans='';
+  document.getElementById('qa').textContent=S.ca;
+  document.getElementById('qb').textContent=S.cb;
+  document.getElementById('qans').textContent='＿';
+  document.getElementById('qans').style.color='var(--gold)';
+}
+
+function nkPress(v){
+  if(S.nkLock||!S.playing)return;
+  if(v==='⌫'){S.ans=S.ans.slice(0,-1);}
+  else if(v==='OK'){if(S.ans)doSubmit();return;}
+  else{if(S.ans.length>=2)return;S.ans+=v;}
+  document.getElementById('qans').textContent=S.ans||'＿';
+  
+  if(!S.ans)return;
+  const correct=S.ca*S.cb,ua=parseInt(S.ans);
+  // 入力完了時に自動サブミット
+  if(ua===correct || S.ans.length===2){
+    S.nkLock=true;
+    setTimeout(()=>{doSubmit();S.nkLock=false;},100);
+  }
+}
+
+function doSubmit(){
+  if(!S.ans||!S.playing)return;
+  const correct=S.ca*S.cb,ua=parseInt(S.ans);
+  if(ua===correct){
+    S.score++;
+    document.getElementById('gscore').textContent=S.score;
+    playCorrect();addPraise();animChar('jump');
+    document.getElementById('qans').style.color='#00ff88';
+  } else {
+    playWrong();animChar('shake');
+    const gs=document.getElementById('game-screen');
+    gs.classList.add('wrong-flash');setTimeout(()=>gs.classList.remove('wrong-flash'),320);
+  }
+  setTimeout(genQ,90);
+}
+
+function addPraise(){
+  const z=document.getElementById('praise-zone');
+  const d=document.createElement('div');
+  d.className='praise';
+  d.textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+  d.style.left=(10+Math.random()*65)+'%';
+  d.style.top=(10+Math.random()*30)+'%';
+  z.appendChild(d);setTimeout(()=>d.remove(),950);
+}
+
+function animChar(type){
+  const el=document.getElementById('gc');
+  el.classList.remove('jump','shake');el.offsetWidth;
+  el.classList.add(type);setTimeout(()=>el.classList.remove(type),500);
+}
+
+function startGame(){
+  S.score=0;S.timeLeft=30;S.ans='';S.playing=true;S.nkLock=false;
+  const ch=CHARS[S.char];
+  document.getElementById('gscore').textContent='0';
+  document.getElementById('gtime').textContent='30';
+  document.getElementById('gtime').classList.remove('warn');
+  document.getElementById('tbar').style.width='100%';
+  document.getElementById('gc').innerHTML=`<div style="filter:drop-shadow(0 0 14px ${ch.color})">${ch.svg}</div>`;
+  document.getElementById('praise-zone').innerHTML='';
+  buildPad();genQ();
+  show('game-screen');startBGM();
+  clearInterval(S.timer);
+  S.timer=setInterval(()=>{
+    S.timeLeft--;
+    document.getElementById('gtime').textContent=S.timeLeft;
+    document.getElementById('tbar').style.width=(S.timeLeft/30*100)+'%';
+    if(S.timeLeft<=5){document.getElementById('gtime').classList.add('warn');playTimeWarn();}
+    if(S.timeLeft<=0){clearInterval(S.timer);S.playing=false;endGame();}
+  },1000);
+}
+
+function endGame(){
+  stopBGM();saveRank(S.char,S.score);
+  const ch=CHARS[S.char];
+  document.getElementById('res-char').innerHTML=`<div style="filter:drop-shadow(0 0 22px ${ch.color})">${ch.svg}</div>`;
+  const msgs=['😤 次はもっとできる！','💪 いいね！練習あるのみ！','🌟 よくできました！','⚡ すごい！九九マスター！','🔥 まさに伝説！最強バトラー！'];
+  document.getElementById('res-msg').textContent=msgs[Math.min(Math.floor(S.score/5),4)];
+  let n=0,t=S.score;
+  document.getElementById('res-score').textContent='0';
+  const iv=setInterval(()=>{n=Math.min(n+1,t);document.getElementById('res-score').textContent=n;if(n>=t)clearInterval(iv);},45);
+  show('result-screen');
+}
+
+// RANKING SYSTEM
+function saveRank(charId,score){
+  try {
+    let r=JSON.parse(localStorage.getItem('kukuRank')||'[]');
+    r.push({charId,score,date:new Date().toLocaleDateString('ja-JP')});
+    r.sort((a,b)=>b.score-a.score);
+    localStorage.setItem('kukuRank',JSON.stringify(r.slice(0,10)));
+  } catch(e) {}
+}
+
+function showRanking(){
+  let r=[];
+  try { r=JSON.parse(localStorage.getItem('kukuRank')||'[]'); } catch(e) {}
+  const medals=['🥇','🥈','🥉'];
+  document.getElementById('rk-list').innerHTML=r.length===0
+    ?'<div class="empty-msg">まだ記録がありません。<br>さっそくバトルしよう！</div>'
+    :r.map((item,i)=>{
+      const ch=CHARS[item.charId];
+      return `<div class="rk-item">
+        <div class="rk-rank">${i<3?medals[i]:(i+1)+'位'}</div>
+        <div class="rk-char-wrap"><div class="rk-char-inner" style="filter:drop-shadow(0 0 6px ${ch.color})">${ch.svg}</div></div>
+        <div class="rk-info"><div class="rk-cname" style="color:${ch.color}">${ch.name}</div><div class="rk-date">${item.date}</div></div>
+        <div class="rk-score">${item.score}<span class="rk-unit">問</span></div>
+      </div>`;
+    }).join('');
+  show('ranking-screen');
+}
+
+// INIT
+window.addEventListener('load',()=>{
+    initStars();
+    showTitle();
+});
 </script>
 </body>
+</html>
+    
+  </body>
+  
 </html>
