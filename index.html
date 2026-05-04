@@ -19,13 +19,15 @@ body{
   background-size: 145% 145%;
   color:var(--text);
   font-family:'Hiragino Kaku Gothic ProN','メイリオ',sans-serif;
-  display:flex;justify-content:center;min-height:100dvh;overflow:hidden;user-select:none;touch-action:none;
+  display:flex;justify-content:center;min-height:100dvh;overflow-x:hidden;overflow-y:auto;user-select:none;touch-action:manipulation;
   animation:bgShift 13s ease-in-out infinite alternate;
 }
 @keyframes bgShift{0%{background-position:0% 20%}100%{background-position:100% 80%}}
-#app{width:100%;max-width:430px;min-height:100dvh;position:relative;overflow:hidden;isolation:isolate}
-.screen{display:none;width:100%;min-height:100dvh;flex-direction:column;align-items:center;justify-content:center;padding:16px;position:relative;z-index:2}
+#app{width:100%;max-width:430px;min-height:100dvh;position:relative;overflow:visible;isolation:isolate;padding-bottom:20px;--specialColor1:#fff36d;--specialColor2:#ff7a00;--specialColor3:#46e8ff;--specialGlow1:rgba(255,243,109,.42);--specialGlow2:rgba(255,122,0,.32);--specialGlow3:rgba(70,232,255,.28)}
+.screen{display:none;width:100%;min-height:auto;flex-direction:column;align-items:center;justify-content:flex-start;padding:14px 16px 24px;position:relative;z-index:2}
 .screen.active{display:flex}
+#title-screen,#char-select-screen,#countdown-screen,#result-screen,#ranking-screen{min-height:100dvh;justify-content:center}
+#game-screen{min-height:auto;justify-content:flex-start;padding-top:10px;padding-bottom:30px}
 #stars,#fx-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none}
 #stars{z-index:0}
 #fx-canvas{z-index:3}
@@ -62,14 +64,20 @@ body{
 @keyframes goIn{0%{transform:scale(.2) rotate(-10deg);opacity:0}60%{transform:scale(1.25) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}
 
 /* GAME */
-.g-header{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:8px;width:100%;padding:6px 0 4px}
+.g-header{display:grid;grid-template-columns:88px 1fr 72px;align-items:start;gap:8px;width:100%;padding:4px 0 6px}
+.head-char,.head-center,.head-right{display:flex;flex-direction:column}
+.head-center{align-items:center;justify-content:flex-start;text-align:center}
+.head-right{align-items:flex-end;justify-content:flex-start;text-align:right}
 .g-label{font-size:10px;letter-spacing:3px;color:#fff7c8;font-weight:900;text-transform:uppercase;text-shadow:0 1px 4px rgba(0,0,0,.22)}
-.g-score{font-size:36px;font-weight:900;color:#fff36d;line-height:1;text-shadow:0 0 16px rgba(255,224,94,.62),0 2px 3px rgba(0,0,0,.25)}
+.head-char-visual{width:58px;height:58px;border-radius:16px;background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.42);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 6px 14px rgba(0,0,0,.14)}
+.head-char-visual .mini-char{transform:scale(.78);transform-origin:center center}
+.g-score{font-size:38px;font-weight:900;color:#fff36d;line-height:1;text-shadow:0 0 16px rgba(255,224,94,.62),0 2px 3px rgba(0,0,0,.25)}
 .g-score.bump{animation:scoreBump .24s ease}
 @keyframes scoreBump{0%{transform:scale(1)}50%{transform:scale(1.22)}100%{transform:scale(1)}}
-.g-time{font-size:36px;font-weight:900;color:#fff;line-height:1;text-align:right;font-variant-numeric:tabular-nums;text-shadow:0 2px 3px rgba(0,0,0,.25)}
+.g-time{font-size:38px;font-weight:900;color:#fff;line-height:1;text-align:right;font-variant-numeric:tabular-nums;text-shadow:0 2px 3px rgba(0,0,0,.25)}
 .g-time.warn{color:#ffeb3b;animation:timeBlink .22s ease-in-out infinite}
-.mult-card{min-width:86px;padding:6px 9px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.10));border:1px solid rgba(255,255,255,.35);box-shadow:0 6px 16px rgba(0,0,0,.18);text-align:center}
+.mid-status{display:grid;grid-template-columns:96px 1fr;gap:8px;width:100%;align-items:center;margin-bottom:2px}
+.mult-card{min-width:0;padding:6px 9px;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.24),rgba(255,255,255,.10));border:1px solid rgba(255,255,255,.35);box-shadow:0 6px 16px rgba(0,0,0,.18);text-align:center}
 .g-mult{font-size:28px;line-height:1;font-weight:900;color:#ffffff;text-shadow:0 0 14px rgba(255,74,168,.75)}
 .g-mult.bump{animation:multBump .36s ease}
 @keyframes multBump{0%{transform:scale(1)}40%{transform:scale(1.35) rotate(-4deg)}100%{transform:scale(1)}}
@@ -77,7 +85,11 @@ body{
 .fever-fill{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,#fff36d,#ff7ad9,#7df9ff);transition:width .18s linear}
 .fever-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;letter-spacing:2px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)}
 #app.fever-mode::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:radial-gradient(circle at 50% 35%,rgba(255,245,85,.28),transparent 34%),linear-gradient(135deg,rgba(255,0,180,.13),rgba(0,230,255,.15));animation:feverPulse .42s ease-in-out infinite alternate}
+#app.special-mode::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;background:radial-gradient(circle at 50% 40%,var(--specialGlow1) 0%, var(--specialGlow2) 18%, transparent 44%),linear-gradient(135deg,var(--specialGlow2),transparent 36%,var(--specialGlow3));animation:specialFlash .75s ease forwards}
+#app.special-mode #gc{animation:specialHero .75s cubic-bezier(.34,1.56,.64,1)}
 @keyframes feverPulse{from{opacity:.38}to{opacity:.82}}
+@keyframes specialFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+@keyframes specialHero{0%{transform:scale(1) rotate(0)}24%{transform:scale(1.3) rotate(-5deg)}56%{transform:scale(1.14) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
 @keyframes timeBlink{0%,100%{opacity:1}50%{opacity:.25}}
 .tbar-wrap{width:100%;height:10px;background:rgba(21,21,48,.55);border-radius:999px;overflow:hidden;margin:4px 0 8px;border:1px solid rgba(255,255,255,.05)}
 .tbar{height:100%;border-radius:999px;background:linear-gradient(90deg,#00ffd9,#6aff79,#fff06a,#ff7f50,#ff4d9d);transition:width .08s linear}
@@ -88,7 +100,7 @@ body{
 .combo-banner{position:absolute;left:50%;top:6px;transform:translateX(-50%) scale(.4);padding:8px 14px;border-radius:999px;background:linear-gradient(135deg,rgba(255,243,109,.95),rgba(255,94,87,.95),rgba(126,83,255,.95));font-weight:900;font-size:18px;letter-spacing:1px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 10px 28px rgba(0,0,0,.22);opacity:0;z-index:12;pointer-events:none}
 .combo-banner.show{animation:comboPop 1s ease forwards}
 @keyframes comboPop{0%{opacity:0;transform:translateX(-50%) translateY(18px) scale(.35)}20%{opacity:1;transform:translateX(-50%) translateY(0) scale(1.12)}75%{opacity:1;transform:translateX(-50%) translateY(-4px) scale(1)}100%{opacity:0;transform:translateX(-50%) translateY(-14px) scale(.95)}}
-.special-cutin{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.2) rotate(-8deg);width:92%;padding:16px 10px;border-radius:24px;background:linear-gradient(135deg,#fff36d,#ff7a00,#ff4aa2,#7d5cff,#46e8ff);border:3px solid rgba(255,255,255,.92);box-shadow:0 16px 36px rgba(0,0,0,.28),0 0 34px rgba(255,255,255,.45);font-size:34px;font-weight:900;text-align:center;color:#fff;text-shadow:0 3px 4px rgba(0,0,0,.35);z-index:20;opacity:0;pointer-events:none}
+.special-cutin{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.2) rotate(-8deg);width:92%;padding:16px 10px;border-radius:24px;background:linear-gradient(135deg,var(--specialColor1),var(--specialColor2),var(--specialColor3));border:3px solid rgba(255,255,255,.92);box-shadow:0 16px 36px rgba(0,0,0,.28),0 0 34px rgba(255,255,255,.45);font-size:34px;font-weight:900;text-align:center;color:#fff;text-shadow:0 3px 4px rgba(0,0,0,.35);z-index:20;opacity:0;pointer-events:none}
 .special-cutin.show{animation:specialCutin 1.05s cubic-bezier(.34,1.56,.64,1) forwards}
 .special-cutin small{display:block;font-size:15px;margin-top:2px;letter-spacing:2px}
 @keyframes specialCutin{0%{opacity:0;transform:translate(-50%,-50%) scale(.15) rotate(-12deg)}18%{opacity:1;transform:translate(-50%,-50%) scale(1.14) rotate(3deg)}70%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-74%) scale(.92) rotate(0)}}
@@ -226,16 +238,98 @@ body{
 .empty-msg{color:#ffffff}
 
 
-#app.special-mode::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;
-  background:
-    radial-gradient(circle at center, rgba(255,255,255,.88) 0%, rgba(255,255,255,.42) 12%, rgba(255,255,255,0) 40%),
-    linear-gradient(135deg, rgba(255,243,109,.18), rgba(255,120,200,.22), rgba(110,223,255,.22));
-  animation:specialFlash .72s ease forwards;
+/* ─── FINAL TUNE: old iPhone + bigger top HUD + no center char ─── */
+#game-screen{gap:4px}
+.g-header{grid-template-columns:104px 1fr 88px;gap:6px;align-items:center;padding-top:4px}
+.head-char-visual{width:72px;height:72px;border-radius:20px}
+.head-char-visual .mini-char{transform:scale(.96);transform-origin:center center}
+.g-score{font-size:clamp(38px,10.5vw,48px)}
+.g-time{font-size:clamp(38px,10.5vw,48px)}
+.g-label{font-size:11px;letter-spacing:2px}
+.mid-status{grid-template-columns:104px 1fr;gap:7px}
+.g-mult{font-size:30px}
+.char-zone{height:54px;margin:0;position:relative}
+#gc{display:none!important}
+#app.special-mode #gchar{animation:specialHero .75s cubic-bezier(.34,1.56,.64,1)}
+.special-cutin{
+  position:fixed;
+  left:50%;
+  top:42%;
+  width:min(396px,96vw);
+  max-width:96vw;
+  padding:12px 8px;
+  border-radius:26px;
+  font-size:clamp(20px,7vw,29px);
+  line-height:1.05;
+  white-space:nowrap;
+  word-break:keep-all;
+  overflow:hidden;
+  text-overflow:clip;
+  z-index:50;
 }
-#app.special-mode #gc{animation:specialHero .72s cubic-bezier(.34,1.56,.64,1)}
-#app.special-mode .q-row{box-shadow:0 0 0 3px rgba(255,255,255,.45), 0 0 28px rgba(255,238,116,.55), 0 0 48px rgba(255,120,200,.28)}
-@keyframes specialFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
-@keyframes specialHero{0%{transform:scale(1) rotate(0)}20%{transform:scale(1.28) rotate(-4deg)}55%{transform:scale(1.12) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+.special-cutin small{
+  display:block;
+  margin-top:5px;
+  font-size:clamp(11px,3.5vw,15px);
+  line-height:1.1;
+  letter-spacing:0;
+  white-space:nowrap;
+  word-break:keep-all;
+  overflow:hidden;
+  text-overflow:clip;
+}
+.q-row{margin-top:2px}
+@media (max-height:680px){
+  #game-screen{padding-top:6px;padding-bottom:18px}
+  .head-char-visual{width:64px;height:64px;border-radius:18px}
+  .g-header{grid-template-columns:94px 1fr 82px}
+  .g-score,.g-time{font-size:clamp(35px,10vw,43px)}
+  .char-zone{height:42px}
+  .q-num,.q-ans{font-size:54px}
+  .q-sep{font-size:36px}
+  .nk{height:54px}
+}
+
+
+
+/* ─── MICRO TUNE: compact battle area + bigger unboxed character ─── */
+.g-header{grid-template-columns:112px 1fr 92px;gap:4px;padding:2px 0 2px}
+.head-char-visual{
+  width:88px;
+  height:82px;
+  border:none!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  overflow:visible!important;
+}
+.head-char-visual .mini-char{transform:scale(1.12);transform-origin:center center}
+.mid-status{grid-template-columns:82px 1fr;gap:6px;margin-bottom:0}
+.mult-card{
+  min-height:28px;
+  padding:0 8px!important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:999px;
+}
+.g-mult{font-size:34px;line-height:1}
+.fever-wrap{height:12px;margin:1px 0 2px!important}
+.tbar-wrap{height:8px;margin:1px 0 2px!important}
+.combo-lane{height:24px;margin:0!important}
+.combo-banner{min-height:23px;padding:3px 10px;font-size:14px}
+.char-zone{height:18px!important;margin:0!important}
+.q-row{margin:0 0 5px!important;padding-top:6px!important;padding-bottom:6px!important}
+@media (max-height:680px){
+  .g-header{grid-template-columns:102px 1fr 86px;padding-top:1px}
+  .head-char-visual{width:82px!important;height:74px!important}
+  .head-char-visual .mini-char{transform:scale(1.04)}
+  .mid-status{grid-template-columns:74px 1fr}
+  .g-mult{font-size:31px}
+  .combo-lane{height:22px}
+  .char-zone{height:14px!important}
+  .q-row{padding-top:5px!important;padding-bottom:5px!important;margin-bottom:4px!important}
+}
 
 </style>
 </head>
@@ -270,11 +364,17 @@ body{
 
 <div class="screen" id="game-screen">
   <div class="g-header">
-    <div><div class="g-label">SCORE</div><div class="g-score" id="gscore">0</div></div>
-    <div class="mult-card"><div class="g-label">倍率</div><div class="g-mult" id="gmult">×1</div></div>
-    <div><div class="g-label" style="text-align:right">TIME</div><div class="g-time" id="gtime">30</div></div>
+    <div class="head-char">
+      <div class="g-label">CHAR</div>
+      <div class="head-char-visual" id="gchar"></div>
+    </div>
+    <div class="head-center"><div class="g-label">SCORE</div><div class="g-score" id="gscore">0</div></div>
+    <div class="head-right"><div class="g-label">TIME</div><div class="g-time" id="gtime">30</div></div>
   </div>
-  <div class="fever-wrap"><div class="fever-fill" id="fever-fill"></div><div class="fever-label" id="fever-label">FEVER GAUGE</div></div>
+  <div class="mid-status">
+    <div class="mult-card"><div class="g-mult" id="gmult">×1</div></div>
+    <div class="fever-wrap"><div class="fever-fill" id="fever-fill"></div><div class="fever-label" id="fever-label">FEVER GAUGE</div></div>
+  </div>
   <div class="tbar-wrap"><div class="tbar" id="tbar"></div></div>
   <div class="combo-lane"><div id="combo-banner" class="combo-banner"></div></div>
   <div class="char-zone">
@@ -329,6 +429,14 @@ svg:`<svg width="70" height="90" viewBox="0 0 70 90" xmlns="http://www.w3.org/20
 
 const PRAISE=['やったね！','すごーい！','できた！','まる！','キラキラ！','そのちょうし！','いいね！','大せいかい！','はやい！','てんさい！','バッチリ！','ピカピカ！','ワクワク！','まだまだいける！','ナイス！','最高！'];
 const COMBO_WORDS=['キラキラ！','わくわく！','いいかんじ！','れんぞく！','ピカピカ！','すごいぞ！'];
+const SPECIALS=[
+  {name:'ファイヤーバースト！', sub:'メラメラ だいばくはつ！', colors:['#ffd45c','#ff7a00','#ff2f55'], glows:['rgba(255,212,92,.55)','rgba(255,122,0,.36)','rgba(255,47,85,.28)'], palette:['#ffd45c','#ff9b2f','#ff5a5f','#ff7a00']},
+  {name:'アイスクリスタル！', sub:'キラキラ こおりシャワー！', colors:['#dff7ff','#6fd8ff','#4f8cff'], glows:['rgba(223,247,255,.58)','rgba(111,216,255,.34)','rgba(79,140,255,.24)'], palette:['#ffffff','#a8efff','#7ad6ff','#70a6ff']},
+  {name:'サンダーストライク！', sub:'ビリビリ いっきに！', colors:['#fff36d','#ffe100','#ff9f1a'], glows:['rgba(255,243,109,.56)','rgba(255,225,0,.34)','rgba(255,159,26,.24)'], palette:['#fff36d','#ffe14d','#ffb300','#ffd86a']},
+  {name:'シャドウスラッシュ！', sub:'しゅしゅっ と きめる！', colors:['#e38cff','#9b63ff','#4f2cc9'], glows:['rgba(227,140,255,.54)','rgba(155,99,255,.32)','rgba(79,44,201,.24)'], palette:['#f0a1ff','#cb7cff','#9e63ff','#6e4be8']},
+  {name:'だいちのどっかーん！', sub:'どしーん パワー！', colors:['#d3ff7a','#6fe05c','#2fb36d'], glows:['rgba(211,255,122,.54)','rgba(111,224,92,.32)','rgba(47,179,109,.24)'], palette:['#efff8a','#b5f36d','#6fe05c','#34c978']},
+  {name:'スカイウインド！', sub:'ビューンと かけぬける！', colors:['#d8fff8','#67f3d8','#52c5ff'], glows:['rgba(216,255,248,.56)','rgba(103,243,216,.34)','rgba(82,197,255,.24)'], palette:['#ffffff','#a6fff0','#67f3d8','#6ec9ff']}
+];
 
 let S={char:null,score:0,correct:0,timeLeft:30,ca:0,cb:0,ans:'',timer:null,audio:null,playing:false,nkLock:false,streak:0,maxCombo:0,mult:1,feverLeft:0,feverMax:10,lastSpecialAt:0,musicMode:'none',musicNext:0,musicRaf:null,audioReady:false};
 let FX={ctx:null,items:[],running:false};
@@ -374,18 +482,26 @@ function playFeverStartFX(){
   noise(.34,.11,'highpass',7200,.1);
   clap(.18); clap(.28);
 }
-function playSpecialFX(){
-  toneSlide(220,1180,'sawtooth',.34,.11,0);
-  toneSlide(440,1540,'triangle',.28,.08,.03);
-  chord([523,784,1047],'square',.30,.08,.08);
-  chord([659,988,1318,1568],'square',.34,.07,.22);
-  chord([784,1175,1568],'triangle',.28,.06,.35);
+function playSpecialFX(sp){
+  const bases=[260,300,360,220,180,420];
+  const b=bases[S.char||0];
+  toneSlide(b,b*4.5,'sawtooth',.34,.11,0);
+  toneSlide(b*1.5,b*5.5,'triangle',.28,.08,.03);
+  chord([b*2,b*3,b*4],'square',.30,.08,.08);
+  chord([b*2.5,b*3.75,b*5,b*6],'square',.34,.07,.22);
+  chord([b*3,b*4.5,b*6],'triangle',.28,.06,.35);
   noise(.36,.13,'highpass',8200,.08);
   clap(.16); clap(.24); clap(.34);
 }
-function activateSpecialMode(){
+function activateSpecialMode(sp){
   const app=document.getElementById('app');
-  if(!app) return;
+  if(!app||!sp) return;
+  app.style.setProperty('--specialColor1', sp.colors[0]);
+  app.style.setProperty('--specialColor2', sp.colors[1]);
+  app.style.setProperty('--specialColor3', sp.colors[2]);
+  app.style.setProperty('--specialGlow1', sp.glows[0]);
+  app.style.setProperty('--specialGlow2', sp.glows[1]);
+  app.style.setProperty('--specialGlow3', sp.glows[2]);
   app.classList.remove('special-mode');
   void app.offsetWidth;
   app.classList.add('special-mode');
@@ -403,46 +519,46 @@ const MUSIC = {
     if(step===0) chord([262,330,392],'triangle',.70,.018,off);
     if(step===8) chord([294,370,440],'triangle',.70,.016,off);
   }},
-  game0:{step:(60/150)/4, len:16, play(step,off){ // ほのお
-    const bassline=[55,0,62,0,65,0,62,0,57,0,62,0,65,0,69,0];
-    const lead=[0,988,0,1175,0,1318,0,1175,0,988,0,1047,0,1175,0,1568];
-    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.045); else hat(off,.022);
-    if(bassline[step]) tone(bassline[step],'sawtooth',.16,.05,off);
-    if(lead[step]) tone(lead[step],'square',.075,.026,off);
-  }},
-  game1:{step:(60/146)/4, len:16, play(step,off){ // こおり
-    const bassline=[49,0,56,0,54,0,56,0,49,0,56,0,61,0,56,0];
-    const lead=[784,0,880,0,988,0,1175,0,988,0,880,0,784,0,659,0];
-    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.038); else hat(off,.018);
-    if(bassline[step]) tone(bassline[step],'triangle',.18,.042,off);
-    if(lead[step]) bell(lead[step],off,.022);
-  }},
-  game2:{step:(60/154)/4, len:16, play(step,off){ // かみなり
-    const bassline=[52,0,52,0,59,0,64,0,52,0,59,0,64,0,71,0];
-    const lead=[0,1175,0,1318,0,1568,0,1318,0,1175,0,1568,0,1760,0,1568];
+  game0:{step:(60/132)/4, len:16, play(step,off){ // fire
+    const bass=[55,0,62,0,67,0,62,0,55,0,64,0,67,0,71,0];
+    const lead=[0,988,0,1175,0,1318,0,1568,0,1318,0,1175,0,1568,0,1760];
     if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); hat(off, step%2===0?.05:.026);
-    if(bassline[step]) tone(bassline[step],'sawtooth',.15,.052,off);
-    if(lead[step]) tone(lead[step],'square',.065,.03,off);
+    if(bass[step]) tone(bass[step],'sawtooth',.15,.055,off);
+    if(lead[step]) tone(lead[step],'square',.06,.032,off);
   }},
-  game3:{step:(60/148)/4, len:16, play(step,off){ // やみ
-    const bassline=[45,0,45,0,52,0,50,0,45,0,45,0,57,0,52,0];
+  game1:{step:(60/132)/4, len:16, play(step,off){ // ice
+    const pad=[523,659,784,659,587,698,784,698,523,659,784,988,784,698,659,587];
+    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.025);
+    bell(pad[step],off,.02);
+    if(step%4===0) chord([262,392,523],'triangle',.42,.02,off);
+    if(step%4===2) chord([294,440,587],'triangle',.42,.018,off);
+  }},
+  game2:{step:(60/132)/4, len:16, play(step,off){ // thunder
+    const bass=[52,0,52,0,59,0,64,0,52,0,59,0,64,0,71,0];
+    const lead=[0,1175,0,1568,0,1760,0,1568,0,1318,0,1760,0,1976,0,1760];
+    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); hat(off, step%2===0?.055:.03);
+    if(bass[step]) tone(bass[step],'sawtooth',.14,.06,off);
+    if(lead[step]) tone(lead[step],'square',.05,.036,off);
+  }},
+  game3:{step:(60/132)/4, len:16, play(step,off){ // shadow
+    const bass=[45,0,45,0,50,0,57,0,45,0,52,0,57,0,50,0];
     const lead=[698,0,784,0,698,0,880,0,988,0,880,0,784,0,698,0];
-    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.04); else hat(off,.02);
-    if(bassline[step]) tone(bassline[step],'triangle',.17,.045,off);
-    if(lead[step]) tone(lead[step],'triangle',.085,.022,off);
+    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.038); else hat(off,.02);
+    if(bass[step]) tone(bass[step],'triangle',.18,.048,off);
+    if(lead[step]) tone(lead[step],'triangle',.08,.022,off);
   }},
-  game4:{step:(60/144)/4, len:16, play(step,off){ // だいち
-    const bassline=[43,0,43,0,48,0,50,0,43,0,48,0,55,0,50,0];
+  game4:{step:(60/132)/4, len:16, play(step,off){ // earth
+    const bass=[43,0,43,0,48,0,43,0,50,0,48,0,55,0,50,0];
     const lead=[659,0,659,0,784,0,880,0,784,0,659,0,587,0,659,0];
-    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.032); else hat(off,.016);
-    if(bassline[step]) tone(bassline[step],'sawtooth',.20,.05,off);
+    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.028);
+    if(bass[step]) tone(bass[step],'sawtooth',.22,.06,off);
     if(lead[step]) tone(lead[step],'square',.07,.024,off);
   }},
-  game5:{step:(60/152)/4, len:16, play(step,off){ // かぜ
-    const bassline=[57,0,64,0,69,0,64,0,57,0,64,0,71,0,76,0];
-    const lead=[988,0,1175,1318,0,1175,988,0,880,0,988,1175,0,1318,1568,0];
-    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.04); else hat(off,.02);
-    if(bassline[step]) tone(bassline[step],'triangle',.15,.045,off);
+  game5:{step:(60/132)/4, len:16, play(step,off){ // wind
+    const bass=[57,0,64,0,69,0,76,0,69,0,64,0,71,0,76,0];
+    const lead=[988,0,1175,1318,0,1568,1318,0,988,0,1175,1318,0,1568,1760,0];
+    if(step===0||step===8) kick(off); if(step===4||step===12) snare(off); if(step%2===0) hat(off,.04); else hat(off,.022);
+    if(bass[step]) tone(bass[step],'triangle',.14,.046,off);
     if(lead[step]) bell(lead[step],off,.02);
   }},
   result:{step:(60/82)/4, len:16, play(step,off){
@@ -522,8 +638,8 @@ function initFX(){
     requestAnimationFrame(loop);
   })();
 }
-function spawnConfetti(centerX,centerY,count=34){
-  const colors=['#ff4d9d','#ffd84c','#52e1ff','#7eff7e','#a775ff','#ff8a00'];
+function spawnConfetti(centerX,centerY,count=34,colors=null){
+  colors = colors || ['#ff4d9d','#ffd84c','#52e1ff','#7eff7e','#a775ff','#ff8a00'];
   for(let i=0;i<count;i++){
     FX.items.push({type:'confetti',x:centerX,y:centerY,vx:(Math.random()*2-1)*4.2,vy:-(Math.random()*5+2.5),g:.12+Math.random()*.06,rot:Math.random()*6.28,vr:(Math.random()*2-1)*.22,w:4+Math.random()*7,h:7+Math.random()*8,color:colors[Math.floor(Math.random()*colors.length)],life:40+Math.random()*22,maxLife:54});
   }
@@ -531,18 +647,24 @@ function spawnConfetti(centerX,centerY,count=34){
     FX.items.push({type:'spark',x:centerX,y:centerY,vx:(Math.random()*2-1)*2.2,vy:-(Math.random()*3+1),g:.08,rot:0,vr:0,w:3+Math.random()*4,h:3+Math.random()*4,color:colors[Math.floor(Math.random()*colors.length)],life:26+Math.random()*16,maxLife:38});
   }
 }
+function spawnBurst(centerX,centerY,colors,count=26){
+  colors = colors || ['#ffffff','#fff36d','#ff8acb'];
+  for(let i=0;i<count;i++){
+    FX.items.push({type:'spark',x:centerX,y:centerY,vx:(Math.random()*2-1)*5.6,vy:(Math.random()*2-1)*5.6,g:.03+Math.random()*.03,rot:0,vr:0,w:4+Math.random()*7,h:4+Math.random()*7,color:colors[Math.floor(Math.random()*colors.length)],life:24+Math.random()*18,maxLife:36});
+  }
+}
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');}
 function maybeStartMenuMusic(){ if(S.audioReady) startMusic('menu'); }
 
 function showTitle(){
-  clearInterval(S.timer); S.playing=false; const app=document.getElementById('app'); if(app) app.classList.remove('special-mode'); stopMusic(); maybeStartMenuMusic();
+  clearInterval(S.timer); S.playing=false; document.getElementById('app').classList.remove('special-mode'); stopMusic(); maybeStartMenuMusic();
   const ch=CHARS[Math.floor(Math.random()*CHARS.length)];
   document.getElementById('title-char').innerHTML=`<div style="filter:drop-shadow(0 0 20px ${ch.color})">${ch.svg}</div>`;
   show('title-screen');
 }
 function showCharSelect(){
-  clearInterval(S.timer); S.playing=false; const app=document.getElementById('app'); if(app) app.classList.remove('special-mode'); maybeStartMenuMusic();
+  clearInterval(S.timer); S.playing=false; document.getElementById('app').classList.remove('special-mode'); maybeStartMenuMusic();
   const g=document.getElementById('char-grid');
   g.innerHTML=CHARS.map((c,i)=>`<div class="char-card" id="cc${i}" onclick="selectChar(${i})"><div style="filter:drop-shadow(0 0 8px ${c.color})">${c.svg}</div><div class="cname">${c.name}</div><div class="ctitle" style="color:${c.color}">${c.title}</div></div>`).join('');
   S.char=null;
@@ -640,10 +762,10 @@ function addFloatingPoints(points){
   setTimeout(()=>d.remove(),950);
   playPointPopFX();
 }
-function showSpecial(text,sub=''){
+function showSpecial(sp){
   const el=document.getElementById('special-cutin');
-  if(!el) return;
-  el.innerHTML=`${text}${sub?`<small>${sub}</small>`:''}`;
+  if(!el||!sp) return;
+  el.innerHTML=`${sp.name}${sp.sub?`<small>${sp.sub}</small>`:''}`;
   el.classList.remove('show');
   void el.offsetWidth;
   el.classList.add('show');
@@ -651,7 +773,7 @@ function showSpecial(text,sub=''){
 function startFever(){
   S.feverLeft=S.feverMax;
   playFeverStartFX();
-  showSpecial('フィーバー！','スコア2ばい！');
+  showSpecial({name:'フィーバー！', sub:'スコア2ばい！'});
   const rect=document.getElementById('app').getBoundingClientRect();
   spawnConfetti(rect.left+rect.width/2, rect.top+rect.height*.28, 88);
   updateHud();
@@ -674,7 +796,12 @@ function addPraise(){
   z.appendChild(d); setTimeout(()=>d.remove(),950);
 }
 function animChar(type){
-  const el=document.getElementById('gc'); el.classList.remove('jump','shake'); void el.offsetWidth; el.classList.add(type); setTimeout(()=>el.classList.remove(type),500);
+  const el=document.getElementById('gchar') || document.getElementById('gc');
+  if(!el) return;
+  el.classList.remove('jump','shake');
+  void el.offsetWidth;
+  el.classList.add(type);
+  setTimeout(()=>el.classList.remove(type),500);
 }
 function doSubmit(){
   if(!S.ans||!S.playing) return;
@@ -695,13 +822,15 @@ function doSubmit(){
       spawnConfetti(rect.left+rect.width/2, rect.top+rect.height*.34, S.streak>=8?64:38);
     }
     if(S.streak>=7 && S.streak%7===0){
-      playSpecialFX();
-      activateSpecialMode();
-      showSpecial('どかーん！','スペシャルアタック！');
+      const sp=SPECIALS[S.char];
+      playSpecialFX(sp);
+      activateSpecialMode(sp);
+      showSpecial(sp);
       const rect=document.getElementById('app').getBoundingClientRect();
-      spawnConfetti(rect.left+rect.width/2, rect.top+rect.height*.38, 120);
-      spawnConfetti(rect.left+rect.width*.26, rect.top+rect.height*.36, 56);
-      spawnConfetti(rect.left+rect.width*.74, rect.top+rect.height*.36, 56);
+      spawnConfetti(rect.left+rect.width/2, rect.top+rect.height*.38, 110, sp.palette);
+      spawnConfetti(rect.left+rect.width*.22, rect.top+rect.height*.36, 56, sp.palette);
+      spawnConfetti(rect.left+rect.width*.78, rect.top+rect.height*.36, 56, sp.palette);
+      spawnBurst(rect.left+rect.width/2, rect.top+rect.height*.38, sp.palette, 44);
     }
     if(S.streak>=10 && S.streak%10===0){
       startFever();
@@ -728,7 +857,8 @@ function startGame(){
   document.getElementById('fever-label').textContent='FEVER GAUGE';
   document.getElementById('app').classList.remove('fever-mode');
   document.getElementById('app').classList.remove('special-mode');
-  document.getElementById('gc').innerHTML=`<div style="filter:drop-shadow(0 0 16px ${ch.color})">${ch.svg}</div>`;
+  document.getElementById('gc').innerHTML='';
+  document.getElementById('gchar').innerHTML=`<div class="mini-char" style="filter:drop-shadow(0 0 12px ${ch.color})">${ch.svg}</div>`;
   document.getElementById('praise-zone').innerHTML='';
   document.getElementById('combo-banner').classList.remove('show');
   document.getElementById('special-cutin').classList.remove('show');
